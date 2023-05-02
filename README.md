@@ -20,4 +20,4 @@ Projects:
 
 9: Minesweeper game, written in Hack high-level language
 
-10-11: Compiler, written in Java (Hack high-level --> VM language)
+10-11: Compiler, written in Python (Hack high-level --> VM language)

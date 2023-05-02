@@ -1,0 +1,16 @@
+/** Initializes a new Minesweeper game and starts running it. */
+
+class Main {
+   function void main() {
+      var Minesweeper game;
+      var boolean stop;
+      let stop = true;
+      while (stop) {
+         do Screen.clearScreen();
+         let game = Minesweeper.new();
+         let stop = game.run();
+         do game.dispose();
+      }
+      return;
+   }
+}

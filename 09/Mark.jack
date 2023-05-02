@@ -1,0 +1,111 @@
+/** Implements a mark. */
+class Mark {
+
+    field int current; // the current spot that the mark stands on
+    field int x, y; // screen location of the mark's top-left corner
+    field int size; // the size of the mark
+    field int times; // the number of digging spots in each column and row
+
+    /** Constructs a new mark that starts from digging spot 0. */
+    constructor Mark new(int startX, int startY, int s, int t) {
+        let current = 0;
+        let x = startX;
+        let y = startY;
+        let size = s;
+        let times = t;
+        // Draw the mark
+        do drawOrUnDraw(true);
+        return this;
+    }
+
+    /** Draws or undraw the current x, y, size mark on the screen. */
+    method void drawOrUnDraw(boolean draw) {
+        do Screen.setColor(draw);
+        do Screen.drawLine(x, y, x + size, y);
+        do Screen.drawLine(x + size, y, x + size, y + size);
+        do Screen.drawLine(x, y, x, y + size);
+        do Screen.drawLine(x, y + size, x + size, y + size);
+        return;
+    }
+
+    /** GET methods. */
+    method int getCurrent() {
+        return current;
+    }
+
+    /** SET methods. */
+    method void setCurrent(int spot) {
+        let current = spot;
+        return;
+    }
+
+    /** move mark up. */
+    method void moveUp() {
+        var int row;
+        let row = current / times;
+        if (row > 0) {
+            // Un draw the current mark
+            do drawOrUnDraw(false);
+            // Update y, current
+            let y = y - size - 2;
+            let current = current - times;
+            // Draw the new mark
+            do drawOrUnDraw(true);
+        }
+        return;
+    }
+
+    /** move mark down. */
+    method void moveDown() {
+        var int row;
+        let row = current / times;
+        if (row < (times - 1)) {
+            // Un draw the current mark
+            do drawOrUnDraw(false);
+            // Update y, current
+            let y = y + size + 2;
+            let current = current + times;
+            // Draw the new mark
+            do drawOrUnDraw(true);
+        }
+        return;
+    }
+
+    /** move mark right. */
+    method void moveRight() {
+        var int col;
+        let col = current - (current / times * times);
+        if (col < (times - 1)) {
+            // Un draw the current mark
+            do drawOrUnDraw(false);
+            // Update x, current
+            let x = x + size + 2;
+            let current = current + 1;
+            // Draw the new mark
+            do drawOrUnDraw(true);
+        }
+        return;
+    }
+
+    /** move mark Left. */
+    method void moveLeft() {
+        var int col;
+        let col = current - (current / times * times);
+        if (col > 0) {
+            // Un draw the current mark
+            do drawOrUnDraw(false);
+            // Update x, current
+            let x = x - size - 2;
+            let current = current - 1;
+            // Draw the new mark
+            do drawOrUnDraw(true);
+        }
+        return;
+    }
+
+    /** Disposes this mark. */
+    method void dispose() {
+        do Memory.deAlloc(this);
+        return;
+    }
+}

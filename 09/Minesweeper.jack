@@ -1,0 +1,130 @@
+/**
+ * Implements the Minesweeper game.
+ * Minesweeper rules are very simple:
+ * The board is divided into cells, with mines randomly distributed.
+ * To win, you need to open all the cells. The number on a cell shows the number of mines adjacent to it.
+ * Using this information, you can determine cells that are safe, and cells that contain mines.
+ * Cells suspected of being mines can be marked with a flag using the right mouse button.
+ * source: https://minesweeper.online/
+ */
+
+class Minesweeper {
+   field Banner banner; // the game banner
+   field Mine mine; // a game board
+   field Draw draw; // the draw class
+   field int x, y; // screen location of the mine's top-left corner
+   field int size; // size of each square
+   field int times; // the number of digging spots in each column and row
+   field Mark mark; // the current location of the player
+   field int direction; // the direction the mark needs to move: 0=none, 1=up, 2=down, 3=left, 4=right 
+   field int flags; // the number of flags marked
+
+   /** Constructs a new Minesweeper Game. */
+   constructor Minesweeper new() {
+      // set the sizes of the mine wanted
+      let x = 288;
+      let y = 32;
+      let size = 16; // distance between borders
+      let times = 12;
+      let banner = Banner.new(16,16, times); // Create the game banner
+      let mine = Mine.new(x, y, size, times); // Create a mine
+      let draw = Draw.new(); // store the draw class in a variable
+      let mark = Mark.new(x + 1, y + 1, size - 2, times);  // Create a marker
+      let direction = 0;  // initial state
+      let flags = 0;
+      return this;
+   }
+
+   /** Disposes this game. */
+   method void dispose() {
+      do banner.dispose();
+      do mine.dispose();
+      do mark.dispose();
+      do Memory.deAlloc(this);
+      return;
+   }
+
+   /** Runs the game: handles the user's inputs and moves the mark accordingly */
+   method boolean run() {
+      var char key;  // the key currently pressed by the user
+      var boolean exit, firstKey, gameOn;
+      var int randSeed;
+      let exit = false;
+      let gameOn = true;
+      let randSeed = 0;
+      let firstKey = true;
+      while (~exit) {
+         // waits for a key to be pressed
+         while (key = 0){
+            let randSeed = randSeed + 1; 
+            if (randSeed > 32640) { let randSeed = 0; }
+            let key = Keyboard.keyPressed(); 
+         }
+         if (firstKey) { do mine.setBombs(randSeed); } // set bombs with the 'random' seed we generated
+         let firstKey = false;
+
+         // Q key = quit and exit
+         if (key = 81)  { let exit = true; }
+
+         // R key = restart the game
+         if (key = 82)  { do draw.dispose(); return true; }
+
+         // D key = dig
+         if ((key = 68) & (gameOn)) {
+            // if you dig on a bomb you lose and the game ends, else the game continue
+            if (mine.dig(mark.getCurrent()) = -1) {
+               do youLose();
+               let gameOn = false;
+            }
+         }
+         // F key = mark flag
+         if ((key = 70) & (gameOn)) {
+            // if you mark a legal flag and you get to 10 flags check if you win
+            if (flags < times) {
+               if (mine.flag(mark.getCurrent())) {
+                  let flags = flags + 1;
+                  if (flags = times) { // last flag
+                     if (mine.win(mark.getCurrent())) {
+                        do youWin();
+                        let gameOn = false;
+                     }
+                  }
+               }
+            }
+         }
+
+         // G key = unmark flag
+         if ((key = 71) & (gameOn)) {
+            // if you unmark a legal flag change the flag count
+            if (mine.unflag(mark.getCurrent())) {
+               let flags = flags - 1;
+            }
+         }
+
+         if ((key = 131) & (gameOn)) { do mark.moveUp(); }   // up arrow
+         if ((key = 133) & (gameOn)) { do mark.moveDown(); }   // down arrow
+         if ((key = 130) & (gameOn)) { do mark.moveLeft();}   // left arrow
+         if ((key = 132) & (gameOn)) { do mark.moveRight(); }   // right arrow
+
+         // waits for the key to be released
+         while (~(key = 0)) { let key = Keyboard.keyPressed(); }
+     }
+     return false;
+   }
+
+   /** Print a "You Lose..." massage on the screen */
+   method void youLose() {
+      do mine.drawAllMines();
+      do Output.moveCursor(21, 10);
+      do Output.printString("YOU LOSE :(");
+      return;
+   }
+
+   /** Print a "You Win!!!" massage on the screen */
+   method void youWin() {
+      do mine.drawAllMines();
+      do Output.moveCursor(21, 10);
+      do Output.printString("YOU WIN !!!");
+      return;
+   }
+}

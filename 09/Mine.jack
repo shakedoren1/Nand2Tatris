@@ -1,0 +1,350 @@
+/** Implements a mine. */
+class Mine {
+
+   field int x, y; // screen location of the mine's top-left corner
+   field int size; // length of a single digging spot inside the mine
+   field int times; // the number of digging spots in each column and row
+   field int timesX, timesY; // counter for lines on the screen
+   field Array spots; // an array of all the digging spots
+   field Array bombs; // an array of all the bombs
+   field Array flags; // an array of all the flags
+
+   /** Constructs a new mine with a given location and size. */
+   constructor Mine new(int startX, int startY, int s, int t) { 
+      var int i, xSpot, ySpot; 
+      // set the sizes of the mine wanted 
+      let x = startX; 
+      let y = startY; 
+      let size = s; 
+      let times = t; 
+      let timesX = 0;
+      let timesY = 0;
+      do draw();
+      let spots = Array.new(times * times);
+      let i = 0;
+      while (i < (times * times)) {
+         let ySpot = i / times; 
+         let xSpot = i - (ySpot * times); 
+         let ySpot = y + (ySpot * size);
+         let xSpot = x + (xSpot * size);
+         let spots[i] = Spot.new(i, xSpot, ySpot, size);
+         let i = i + 1;
+      }
+      let bombs = Array.new(times);
+      let flags = Array.new(times);
+      return this;
+   }
+
+   /** Disposes this mine. */
+   method void dispose() {
+      var int i;
+      var Spot s;
+      let i = 0;
+      while (i < (times * times)) {
+         let s = spots[i];
+         do s.dispose();
+         let i = i + 1;
+      }
+      let i = 0;
+      while (i < times) {
+         do bombs.dispose();
+         let i = i + 1;
+      }
+      let i = 0;
+      while (i < times) {
+         do flags.dispose();
+         let i = i + 1;
+      }
+      do Memory.deAlloc(this);
+      return;
+   }
+
+   /** Draws the mine on the screen. */
+   method void draw() {
+      var int totalSize, xDraw, yDraw;
+      let xDraw = x;
+      let yDraw = y;
+      let totalSize = size * times;
+      do Screen.setColor(true);
+      while (timesX < (times + 1)) {
+          do Screen.drawLine(xDraw, yDraw, xDraw + totalSize, yDraw);
+          let yDraw = yDraw + size;
+          let timesX = timesX + 1;
+      }
+      let yDraw = yDraw - size;
+      while (timesY < (times + 1)) {
+          do Screen.drawLine(xDraw, yDraw - totalSize, xDraw, yDraw);
+          let xDraw = xDraw + size;
+          let timesY = timesY + 1;
+      }
+      return;
+   }
+
+   /** Put in the bombs array <times> random spots. */
+   method void setBombs(int randSeed) {
+      var int i;
+      var int j;
+      var int bomb;
+      var boolean inBombs;
+      do Random.setSeed(1);
+      let i=0;
+      while (i < times) {
+
+         let bomb = Random.randRange((times*times), randSeed); // generate rand in 0-times*times
+         let j=0;
+         let inBombs = false;
+         while (j < i) { // checks if bomb already exists
+            if (bomb = bombs[j]) {
+               let inBombs = true;
+            }
+            let j = j + 1;
+         }
+         if (~inBombs) { // new bomb to add
+         
+            let bombs[i] = bomb;
+            let flags[i] = -1; // initiate flags array to -1
+            let i = i + 1;
+         }
+         // else - do nothing
+         let inBombs = false; // reset boolean
+      }
+      return;
+   }
+
+   /** Dig in the given spot, return an int in which :
+      0+ = dug - and not a mine
+      -1 = dug - on a mine
+      -2 = unable to dig - spot is flagged or open*/
+   method int dig(int markId) {
+      var Spot s;
+      var int i, bombsCount;
+      var int spotId;
+      let spotId = markId;
+      let s = spots[spotId];
+
+      if ((~s.getClose()) | (s.getFlag())) { return -2; }
+
+      // check if current spot is a mine
+      if (isABomb(spotId)) { return -1; }
+
+      // not a mine and able to dig - need to return how many mines are around spot or dig empties if 0
+      let bombsCount = digNonBomb(spotId, markId);
+      return bombsCount;
+   }
+
+   /** Check if a certain spot is in bombs array - returns bool value */
+   method boolean isABomb (int spotId) {
+      var int i;
+      let i = 0;
+      while (i < times) {
+         if (bombs[i] = spotId) { return true; }
+         let i = i + 1;
+      }
+      return false;
+   }
+
+   /** Digs in a non-bomb spot:
+      1. count bombs around the spot
+      2. if count is 0 - open empties
+      3. RETURN the bombCount
+      NOTE - if already open doesn't matter */
+   method int digNonBomb (int spotId, int markId) {
+      var Spot s;
+      var int i, bombsCount;
+      let s = spots[spotId];
+      let bombsCount = countBombs(spotId);
+      if (bombsCount = 0) { 
+         do openEmpties(spotId, markId);
+         // do Draw.drawEmpty(s.getLocation());
+         // do s.setClose(false);
+      }
+      else { 
+         do drawDigit(bombsCount, s.getLocation(), spotId, markId);
+         do s.setClose(false);
+      }
+      return bombsCount;
+   }
+
+   /** returns how many bombs are around a given spot */
+   method int countBombs (int spotId) {
+      var int i, bombsCount, row, col;
+      let i = 0;
+      let bombsCount = 0;
+      // border check - send only to spots that exist in the board
+      let row = (spotId / times);
+      let col = (spotId - (row * times));
+      if ((row > 0) & (col > 0)) { // check left up
+         if (isABomb(spotId - (times+1))) { let bombsCount = bombsCount + 1; } 
+      }
+      if (row > 0) { // check up
+         if (isABomb(spotId - times)) { let bombsCount = bombsCount + 1; } 
+      }
+      if ((row > 0) & (col < (times-1))) { // check right up
+         if (isABomb(spotId - (times-1))) { let bombsCount = bombsCount + 1; } 
+      }
+      if (col > 0) {
+         if (isABomb(spotId - 1)) { let bombsCount = bombsCount + 1; } // check left
+      }
+      if (col < (times-1)) { // check right
+         if (isABomb(spotId + 1 )) { let bombsCount = bombsCount + 1; } 
+      }
+      if ((row < (times-1)) & (col > 0)) { // check left down
+         if (isABomb(spotId + (times-1))) { let bombsCount = bombsCount + 1; } 
+      }
+      if (row < (times-1)) { // check down
+         if (isABomb(spotId + (times))) { let bombsCount = bombsCount + 1; } 
+      }
+      if ((row < (times-1)) & (col < (times-1))) { // check right down
+         if (isABomb(spotId + (times+1))) { let bombsCount = bombsCount + 1; } 
+      }
+      return bombsCount;
+   }
+
+   /** given a non mine spot - dig all 0's around it */
+   method void openEmpties (int spotId, int markId) {
+      var Spot s;
+      var int row, col, counter;
+      let s = spots[spotId];
+      if (~s.getClose()) { return; } // if spot is open don't proceed
+      let counter = countBombs(spotId);
+      if ( counter > 0 ) { // not empty
+         let counter = digNonBomb(spotId, markId);
+         return;
+      }
+      //spot is empty - open self + all around and send to 4 ways
+      if (markId = spotId) {
+         do Draw.drawEmpty(s.getLocation());
+      } else { do Draw.drawEmptyNoMark(s.getLocation()); }
+      do s.setClose(false);
+      
+
+      // border check - send only to spots that exist in the board
+      let row = (spotId / times);
+      let col = (spotId - (row * times));
+      if ((row > 0) & (col > 0)) { do openEmpties(spotId - (times+1), markId); }// try left up
+      if (row > 0) { do openEmpties(spotId - times, markId); } // try up
+      if ((row > 0) & (col < (times-1))) { do openEmpties(spotId - (times-1), markId); } // try right up
+      if (col > 0) { do openEmpties(spotId - 1, markId); } // try left
+      if (col < (times-1)) { do openEmpties(spotId + 1, markId); } // try right
+      if ((row < (times-1)) & (col > 0)) { do openEmpties(spotId + (times-1), markId); } // try left down
+      if (row < (times-1)) { do openEmpties(spotId + times, markId); } // try down
+      if ((row < (times-1)) & (col < (times-1))) { do openEmpties(spotId + (times+1), markId); } // try right down
+      return;
+   }
+
+   /** Mark a flag in the given spot, return true if it's a legal mark. */
+   method boolean flag(int spotId) {
+      // first check that spot is closed and unflagged
+      var int i;
+      var Spot s;
+      let s = spots[spotId];
+      if (s.getClose()) { // spot is closed
+         if (~s.getFlag()) { // spot is unflagged
+
+            // legal mark
+            do s.setFlag(true); 
+            //add to flags array
+            let i=0;
+            while ( i < times ) {
+               if (flags[i] = -1) {
+                  let flags[i] = spotId;
+                  let i = times;
+               }
+               let i = i + 1;
+            }
+            do Draw.drawFlag(s.getLocation());
+            return true;
+         }
+      }
+      return false;
+   }
+
+   /** Unmark flag in the given spot, return true if it's a legal unmark. */
+   method boolean unflag(int spotId) {
+      var int i;
+      var Spot s;
+      let s = spots[spotId];
+      //first check that spot is closed and flagged
+      if (s.getClose()) { // spot is closed
+         if (s.getFlag()) { // spot is flagged
+            // legal mark
+            do s.setFlag(false); 
+            //remove from flags array
+            let i=0;
+            while ( i < times ) {
+               if ( flags[i] = spotId ) {
+                  let flags[i] = -1;
+                  let i = times;
+               }
+               let i = i + 1;
+            }
+            do Draw.drawUnFlag(s.getLocation());
+            return true;
+         }
+      }
+      return false;
+   }
+
+   /** Return true if all the flags marked are in the correct bombs spot. */
+   method boolean win(int markId) {
+      var int i,tmp;
+      var Spot s;
+      let i = 0;
+      while (i < times) {
+         if (~isABomb(flags[i])) { return false; }
+         let i = i + 1;
+      }
+
+
+      // all flags are bombs
+      let i = 0;
+      let tmp = 0;
+      while (i < (times*times)) {
+         // open all non bombs
+         let s = spots[i];
+         if (~s.getFlag()) {
+            let tmp = digNonBomb(i, markId);
+         }
+         let i = i + 1;
+      }
+      return true;
+   }
+
+    /** Recieve a digit 1-8 and draw it */
+    method void drawDigit (int d, int location, int spotId, int markId) {
+      if (markId = spotId) {
+         if (d=1) { do Draw.drawOne(location); }
+         if (d=2) { do Draw.drawTwo(location); }
+         if (d=3) { do Draw.drawThree(location); }
+         if (d=4) { do Draw.drawFour(location); }
+         if (d=5) { do Draw.drawFive(location); }
+         if (d=6) { do Draw.drawSix(location); }
+         if (d=7) { do Draw.drawSeven(location); }
+         if (d=8) { do Draw.drawEight(location); }
+      } else {
+         if (d=1) { do Draw.drawOneNoMark(location); }
+         if (d=2) { do Draw.drawTwoNoMark(location); }
+         if (d=3) { do Draw.drawThreeNoMark(location); }
+         if (d=4) { do Draw.drawFourNoMark(location); }
+         if (d=5) { do Draw.drawFiveNoMark(location); }
+         if (d=6) { do Draw.drawSixNoMark(location); }
+         if (d=7) { do Draw.drawSevenNoMark(location); }
+         if (d=8) { do Draw.drawEightNoMark(location); }
+      }
+        return;
+    }
+
+    /** Draw all mines */
+    method void drawAllMines () {
+      var int i, spotId;
+      var Spot s;
+      let i = 0;
+      while (i < times) {
+         let spotId = bombs[i];
+         let s = spots[spotId];
+         do Draw.drawMine(s.getLocation());
+         let i = i + 1;
+      }
+      return;
+    }
+}

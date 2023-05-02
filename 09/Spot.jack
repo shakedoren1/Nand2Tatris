@@ -1,0 +1,62 @@
+/** Implements a digging spot. */
+class Spot {
+
+    field int spotID; // the digging spot ID
+    field int x, y; // screen location of the spots's top-left corner
+    field int size; // length of a single digging spot
+    field boolean close, bomb, flag; // the spot attributes
+
+    /** Constructs a new Spot with a given ID. */
+    constructor Spot new(int id, int col, int row, int s) {
+        let spotID = id;
+        let x = col;
+        let y = row;
+        let size = s;
+        let close = true;
+        let flag = false;
+        do drawNew();
+        return this;
+    }
+
+    /** GET methods. */
+    method int getSpotID() {
+        return spotID;
+    }
+
+    method boolean getClose() {
+        return close;
+    }
+
+    method boolean getFlag() {
+        return flag;
+    }
+
+    /** SET methods. */
+    method void setClose(boolean b) {
+        let close = b;
+        return;
+    }
+
+    method void setFlag(boolean b) {
+        let flag = b;
+        return;
+    }
+
+    /** Disposes this spot. */
+    method void dispose() {
+        do Memory.deAlloc(this);
+        return;
+    }
+
+    /** Draws the new spot on the screen. */
+    method void drawNew() {
+        do Screen.setColor(true);
+        do Screen.drawRectangle(x+2, y+2, x + size - 2, y + size - 2);
+        return;
+    }
+
+    /** Return the location of the pixel (0,0) of the current spot */
+    method int getLocation () {
+        return ((32*(y))+((x)/16));
+    }
+}

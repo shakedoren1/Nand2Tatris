@@ -1,0 +1,61 @@
+/** Implements a Banner. */
+class Banner {
+
+    field int x, y; // screen location of the Banner's top-left corner
+    field int bombs; // the number of bombs
+
+    /** Constructs the game banner - headline + instructions. */
+    constructor Banner new(int xStart, int yStart, int b) {
+        var int location, i, j;
+        let x = xStart;
+        let y = yStart;
+        let bombs = b;
+        let i = 8;
+        let j = 2;
+        let location = ((32 * x) + ((y+1) / 16));
+        do Draw.drawHead(location);
+        do Output.moveCursor(i, j);
+        do Output.printString("There are ");
+        do Output.printInt(bombs);
+        do Output.printString(" bombs in the mine,");
+        let i = i + 1;
+        do Output.moveCursor(i, j);
+        do Output.printString("your job is to flag all of them.");
+        let i = i + 1;
+        do Output.moveCursor(i, j);
+        do Output.printString("Dig around to get clues.");
+        let i = i + 1;
+        do Output.moveCursor(i, j);
+        do Output.printString("If you're out of flags and don't");
+        let i = i + 1;
+        do Output.moveCursor(i, j);
+        do Output.printString("win, you flaged the wrong spots!");
+        let i = i + 2;
+        let j = j + 3;
+        do Output.moveCursor(i, j);
+        do Output.printString("Use Arrows to move around");
+        let i = i + 1;
+        let j = j + 2;
+        do Output.moveCursor(i, j);
+        do Output.printString("(Q) = Quit and Exit");
+        let i = i + 1;
+        do Output.moveCursor(i, j);
+        do Output.printString("(R) = Reset game");
+        let i = i + 1;
+        do Output.moveCursor(i, j);
+        do Output.printString("(D) = Dig");
+        let i = i + 1;
+        do Output.moveCursor(i, j);
+        do Output.printString("(F) = Mark flag");
+        let i = i + 1;
+        do Output.moveCursor(i, j);
+        do Output.printString("(G) = Unmark flag");
+        return this;
+    }
+
+    /** Disposes this banner. */
+    method void dispose() {
+        do Memory.deAlloc(this);
+        return;
+    }
+}

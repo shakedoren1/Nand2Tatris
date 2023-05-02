@@ -1,0 +1,38 @@
+/** Implements a Random class that generates a random number. */
+class Random {
+    
+    static int seed;
+    
+    function void setSeed(int newSeed) {
+        let seed = newSeed;
+        return;
+    }
+
+    function int rand() {
+        /** return a random number in the range 0..32767 */
+        let seed = seed + 14038;
+        if (seed < 0) {
+            let seed = seed - 32767 - 1;
+        }
+        return seed;
+    }
+
+    function int randRange(int range, int randSeed) {
+        /** return a random number in the range 0..range */
+        var int mask;
+        var int ret, tmp;
+        let mask = 21206;
+        let seed = (seed * 173)+19;
+        
+        let ret = (randSeed+seed) & mask;
+        let tmp = ret / range;
+        let ret = ret - (tmp* range);
+
+        return ret;
+    }
+
+    method void dispose() {
+        do Memory.deAlloc(this);
+        return;
+    }
+}

@@ -18,6 +18,6 @@ Projects:
 
 7-8: VM Translator, written in Java (VM language --> Assembly)
 
-9: Minesweeper game, written in Hack high-level language
+9: Minesweeper game, written in Jack high-level language
 
-10-11: Compiler, written in Python (Hack high-level --> VM language)
+10-11: Compiler, written in Python (Jack high-level --> VM language)

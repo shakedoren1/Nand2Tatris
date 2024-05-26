@@ -1,13 +1,10 @@
 # Nand2Tetris
-My implementations of Nand2Tetris course by prof. Shimon Shoken.
+Our implementations of Nand2Tetris course by prof. Shimon Shoken.
 
-IMAGES FROM THE MINESWEEPER GAME IN PROJECT 9
+### Course goal:
+Implement the whole digital systems in the virtual computer. From Nand gate to a game.
 
-Course goal:
-Implement the whole digital systems in the virtual computer. From Nand to Minesweeper, through all the pipeline in between.
-
-Projects:
-
+### Projects:
 1-3: Basic chips implementations
 
 4: Basic programs written in Assembly
@@ -18,6 +15,7 @@ Projects:
 
 7-8: VM Translator, written in Java (VM language --> Assembly)
 
-9: Minesweeper game, written in Jack high-level language
+9: Minesweeper game, written in Jack (high-level language)
+Screenshots of the game are inside the project folder.
 
-10-11: Compiler, written in Python (Jack high-level --> VM language)
+10-11: Compiler, written in Python (Jack --> VM language)

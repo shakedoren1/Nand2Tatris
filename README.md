@@ -4,7 +4,7 @@ Our implementations of Nand2Tetris course by prof. Shimon Shoken.
 ## Course goal:
 Implement the whole digital systems in the virtual computer. From Nand gate to a game. <br>
 ### Outcome:
-![Minesweeper Game](09/images/playing.png)
+<img src="09/images/playing.png" alt="Minesweeper Game" width="400">
 
 ## Projects:
 1-3: Basic chips implementations
